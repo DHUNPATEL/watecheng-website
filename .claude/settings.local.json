@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:avidgroup.com.au)",
+      "mcp__Claude_Preview__preview_start",
+      "WebFetch(domain:69e5aec7e3a817a44bf524f1--poetic-horse-5e6560.netlify.app)",
+      "WebFetch(domain:watecheng.netlify.app)",
+      "WebFetch(domain:dhunpatel.com)"
+    ]
+  }
+}
