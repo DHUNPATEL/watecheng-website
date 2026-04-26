@@ -137,26 +137,16 @@
 })();
 
 // ============================================================
-// CONTACT FORM SUBMIT (placeholder handler)
+// CONTACT FORM SUBMIT (Web3Forms)
 // ============================================================
 (function () {
   const form = document.querySelector('.contact-form');
   if (!form) return;
 
   form.addEventListener('submit', (e) => {
-    e.preventDefault();
     const btn = form.querySelector('button[type="submit"]');
-    const original = btn.textContent;
-    btn.textContent = 'Message Sent!';
+    btn.textContent = 'Sending...';
     btn.disabled = true;
-    btn.style.background = '#22c55e';
-    btn.style.borderColor = '#22c55e';
-    setTimeout(() => {
-      btn.textContent = original;
-      btn.disabled = false;
-      btn.style.background = '';
-      btn.style.borderColor = '';
-      form.reset();
-    }, 3000);
+    // Allow the form to submit naturally to Web3Forms
   });
 })();

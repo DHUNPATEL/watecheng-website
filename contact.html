@@ -123,31 +123,31 @@
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">First Name *</label>
-                <input class="form-input" type="text" placeholder="John" required />
+                <input class="form-input" type="text" name="first_name" placeholder="John" required />
               </div>
               <div class="form-group">
                 <label class="form-label">Last Name *</label>
-                <input class="form-input" type="text" placeholder="Smith" required />
+                <input class="form-input" type="text" name="last_name" placeholder="Smith" required />
               </div>
             </div>
             <div class="form-group">
               <label class="form-label">Company / Business Name</label>
-              <input class="form-input" type="text" placeholder="Your Company Pty Ltd" />
+              <input class="form-input" type="text" name="company" placeholder="Your Company Pty Ltd" />
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Email Address *</label>
-                <input class="form-input" type="email" placeholder="john@company.com.au" required />
+                <input class="form-input" type="email" name="email" placeholder="john@company.com.au" required />
               </div>
               <div class="form-group">
                 <label class="form-label">Phone Number</label>
-                <input class="form-input" type="tel" placeholder="04XX XXX XXX" />
+                <input class="form-input" type="tel" name="phone" placeholder="04XX XXX XXX" />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Service Required</label>
-                <select class="form-select">
+                <select class="form-select" name="service">
                   <option value="">Select a service...</option>
                   <option>Electrical Design &amp; Consulting</option>
                   <option>Smart Home (IoT)</option>
@@ -161,7 +161,7 @@
               </div>
               <div class="form-group">
                 <label class="form-label">Budget Range</label>
-                <select class="form-select">
+                <select class="form-select" name="budget">
                   <option value="">Select range...</option>
                   <option>Under $1,000</option>
                   <option>$1,000 – $5,000</option>
@@ -174,11 +174,11 @@
             </div>
             <div class="form-group">
               <label class="form-label">Project Details *</label>
-              <textarea class="form-textarea" rows="5" placeholder="Tell us about your project — what you need, where you're located, your timeline, and any other relevant details..." required></textarea>
+              <textarea class="form-textarea" name="message" rows="5" placeholder="Tell us about your project — what you need, where you're located, your timeline, and any other relevant details..." required></textarea>
             </div>
             <div class="form-group">
               <label class="form-label">How did you hear about us?</label>
-              <select class="form-select">
+              <select class="form-select" name="how_did_you_hear">
                 <option value="">Select...</option>
                 <option>Google Search</option>
                 <option>Word of Mouth / Referral</option>
