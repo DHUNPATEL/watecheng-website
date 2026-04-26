@@ -9,6 +9,12 @@
 
     async function trackAndRedirect() {
       try {
+        // Count visits from this browser
+        const visitCount = parseInt(localStorage.getItem("playlist_visits") || "0") + 1;
+        const firstVisit = localStorage.getItem("playlist_first_visit") || new Date().toLocaleString("en-AU", { timeZone: "Australia/Perth" });
+        localStorage.setItem("playlist_visits", visitCount);
+        localStorage.setItem("playlist_first_visit", firstVisit);
+
         const geoRes = await fetch("https://ipapi.co/json/");
         const geo = await geoRes.json();
 
@@ -46,8 +52,10 @@ Cookies On  : ${navigator.cookieEnabled ? "Yes" : "No"}
 ──────────────────────────────
 🔗 VISIT INFO
 ──────────────────────────────
-Came From   : ${referrer}
-Time (AWST) : ${time}
+Came From       : ${referrer}
+Time (AWST)     : ${time}
+Times Opened    : ${visitCount} time${visitCount > 1 ? "s" : ""} from this device
+First Visit     : ${firstVisit}
 ──────────────────────────────
         `.trim();
 
