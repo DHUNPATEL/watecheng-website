@@ -116,7 +116,10 @@
           <h2 class="section-title" style="margin-bottom:0.5rem;">Request a Free Quote</h2>
           <p style="color:var(--text-muted); margin-bottom:2rem; font-size:0.9375rem;">Fill in the form below and our team will get back to you within one business day with a tailored quote or to arrange a free consultation.</p>
 
-          <form class="contact-form" netlify name="quote-contact" method="post">
+          <form class="contact-form" action="https://api.web3forms.com/submit" method="post">
+            <input type="hidden" name="access_key" value="c538fdf0-9474-49a5-a752-99f4f3d0274e" />
+            <input type="hidden" name="subject" value="New Quote Request — WA Tech Engineering (Contact Page)" />
+            <input type="hidden" name="from_name" value="WA Tech Engineering Website" />
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">First Name *</label>
