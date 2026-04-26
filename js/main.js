@@ -153,11 +153,31 @@
     device: /Mobi|Android/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop',
     screen: screen.width + 'x' + screen.height,
     language: navigator.language,
+    geo: null,
     pages: [],
     clicks: [],
     formSubmissions: [],
     sent: false
   };
+
+  // Fetch geo/IP info once per session
+  if (!session.geo) {
+    fetch('https://ipapi.co/json/')
+      .then(r => r.json())
+      .then(geo => {
+        session.geo = {
+          ip: geo.ip,
+          city: geo.city,
+          region: geo.region,
+          country: geo.country_name,
+          postcode: geo.postal || 'N/A',
+          latlong: geo.latitude + ', ' + geo.longitude,
+          timezone: geo.timezone,
+          isp: geo.org
+        };
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      }).catch(() => {});
+  }
 
   // Record current page
   const thisPage = { name: PAGE_NAME, path: window.location.pathname, timeSpent: 0, scrollDepth: 0 };
@@ -265,12 +285,26 @@ ${clicksText}
 ${formText}
 
 ──────────────────────────────
-🌐 VISITOR INFO
+📍 LOCATION
+──────────────────────────────
+IP Address  : ${s.geo ? s.geo.ip : 'N/A'}
+City        : ${s.geo ? s.geo.city : 'N/A'}
+Region      : ${s.geo ? s.geo.region : 'N/A'}
+Country     : ${s.geo ? s.geo.country : 'N/A'}
+Postcode    : ${s.geo ? s.geo.postcode : 'N/A'}
+Lat / Long  : ${s.geo ? s.geo.latlong : 'N/A'}
+Timezone    : ${s.geo ? s.geo.timezone : 'N/A'}
+ISP / Org   : ${s.geo ? s.geo.isp : 'N/A'}
+
+──────────────────────────────
+💻 DEVICE & BROWSER
 ──────────────────────────────
 Arrived from    : ${s.referrer}
 Device          : ${s.device}
 Screen          : ${s.screen}
 Language        : ${s.language}
+User Agent      : ${navigator.userAgent}
+Cookies On      : ${navigator.cookieEnabled ? 'Yes' : 'No'}
 Session started : ${s.startTime}
 ──────────────────────────────
     `.trim();
