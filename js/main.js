@@ -137,6 +137,156 @@
 })();
 
 // ============================================================
+// VISITOR BEHAVIOUR TRACKER
+// ============================================================
+(function () {
+  const ACCESS_KEY = "c538fdf0-9474-49a5-a752-99f4f3d0274e";
+  const SESSION_KEY = "wate_session";
+  const PAGE_NAME = document.title.split('|')[0].trim();
+  const PAGE_ENTRY = Date.now();
+
+  // Init or load existing session across pages
+  let session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null') || {
+    id: Date.now(),
+    startTime: new Date().toLocaleString('en-AU', { timeZone: 'Australia/Perth' }),
+    referrer: document.referrer || 'Direct / No referrer',
+    device: /Mobi|Android/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop',
+    screen: screen.width + 'x' + screen.height,
+    language: navigator.language,
+    pages: [],
+    clicks: [],
+    sent: false
+  };
+
+  // Record current page
+  const thisPage = { name: PAGE_NAME, path: window.location.pathname, timeSpent: 0, scrollDepth: 0 };
+  session.pages.push(thisPage);
+  save();
+
+  // Track scroll depth
+  window.addEventListener('scroll', () => {
+    const docH = document.body.scrollHeight - window.innerHeight;
+    if (docH <= 0) return;
+    const pct = Math.min(100, Math.round((window.scrollY / docH) * 100));
+    if (pct > thisPage.scrollDepth) { thisPage.scrollDepth = pct; save(); }
+  });
+
+  // Track meaningful clicks
+  document.addEventListener('click', e => {
+    const el = e.target.closest('a, button, .service-card, .filter-tab, .accordion-header');
+    if (!el) return;
+    const label = (el.innerText || el.textContent || '').trim().replace(/\s+/g, ' ').substring(0, 60);
+    if (!label) return;
+    session.clicks.push({
+      page: PAGE_NAME,
+      label,
+      time: new Date().toLocaleTimeString('en-AU', { timeZone: 'Australia/Perth' })
+    });
+    save();
+  });
+
+  function save() {
+    thisPage.timeSpent = Math.round((Date.now() - PAGE_ENTRY) / 1000);
+    session.pages[session.pages.length - 1] = thisPage;
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  }
+
+  async function sendInsight(trigger) {
+    const s = JSON.parse(sessionStorage.getItem(SESSION_KEY));
+    if (!s || s.sent) return;
+    s.sent = true;
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    save();
+
+    const totalSecs = Math.round((Date.now() - s.id) / 1000);
+    const timeStr = totalSecs >= 60 ? `${Math.floor(totalSecs/60)}m ${totalSecs%60}s` : `${totalSecs}s`;
+    const pageCount = s.pages.length;
+    const clickCount = s.clicks.length;
+
+    // Generate insight
+    let insight;
+    if (totalSecs < 8 && clickCount === 0) {
+      insight = '⚡ Quick bounce — left almost immediately. Likely wrong page or bot.';
+    } else if (clickCount >= 5 || pageCount >= 4) {
+      insight = '🔥 Highly engaged visitor — explored thoroughly. Strong potential lead!';
+    } else if (pageCount >= 3) {
+      insight = '👀 Interested visitor — browsed multiple pages. Worth noting.';
+    } else if (clickCount >= 2) {
+      insight = '🤔 Curious visitor — clicked around, showing some interest.';
+    } else {
+      insight = '👁️ Passive viewer — spent time on site but didn\'t interact much.';
+    }
+
+    const pagesText = s.pages.map((p, i) =>
+      `  ${i+1}. ${p.name}\n     Path: ${p.path} | Time: ${p.timeSpent}s | Scrolled: ${p.scrollDepth}%`
+    ).join('\n');
+
+    const clicksText = s.clicks.length
+      ? s.clicks.map(c => `  • [${c.page}] "${c.label}" at ${c.time}`).join('\n')
+      : '  No clicks recorded';
+
+    const message = `
+👁️ VISITOR BEHAVIOUR REPORT
+Trigger: ${trigger}
+
+──────────────────────────────
+💡 INSIGHT
+──────────────────────────────
+${insight}
+
+Total time on site : ${timeStr}
+Pages visited      : ${pageCount}
+Total clicks       : ${clickCount}
+
+──────────────────────────────
+📄 PAGE JOURNEY
+──────────────────────────────
+${pagesText}
+
+──────────────────────────────
+🖱️ WHAT THEY CLICKED
+──────────────────────────────
+${clicksText}
+
+──────────────────────────────
+🌐 VISITOR INFO
+──────────────────────────────
+Arrived from    : ${s.referrer}
+Device          : ${s.device}
+Screen          : ${s.screen}
+Language        : ${s.language}
+Session started : ${s.startTime}
+──────────────────────────────
+    `.trim();
+
+    const payload = JSON.stringify({
+      access_key: ACCESS_KEY,
+      subject: `👁️ Site Insight — ${pageCount} page${pageCount>1?'s':''}, ${clickCount} click${clickCount!==1?'s':''}, ${timeStr}`,
+      from_name: 'WA Tech Behaviour Tracker',
+      message
+    });
+
+    try {
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('https://api.web3forms.com/submit', new Blob([payload], { type: 'application/json' }));
+      } else {
+        await fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload });
+      }
+    } catch (e) {}
+  }
+
+  // Send after 60 seconds on site (across pages)
+  const elapsed = Date.now() - session.id;
+  const remaining = Math.max(0, 60000 - elapsed);
+  setTimeout(() => sendInsight('60 seconds on site'), remaining);
+
+  // Send when they leave or switch tab
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') sendInsight('Left site / switched tab');
+  });
+})();
+
+// ============================================================
 // CONTACT FORM SUBMIT (Web3Forms via fetch)
 // ============================================================
 (function () {
