@@ -317,23 +317,38 @@ Session started : ${s.startTime}
     });
 
     try {
+      // Use fetch first, fall back to sendBeacon
+      const sent = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: payload,
+        keepalive: true
+      }).then(r => r.ok).catch(() => false);
+
+      // If fetch failed, try sendBeacon
+      if (!sent && navigator.sendBeacon) {
+        navigator.sendBeacon('https://api.web3forms.com/submit', new Blob([payload], { type: 'application/json' }));
+      }
+    } catch (e) {
       if (navigator.sendBeacon) {
         navigator.sendBeacon('https://api.web3forms.com/submit', new Blob([payload], { type: 'application/json' }));
-      } else {
-        await fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload });
       }
-    } catch (e) {}
+    }
   }
 
-  // Send after 60 seconds on site (across pages)
+  // Send after 45 seconds on site
   const elapsed = Date.now() - session.id;
-  const remaining = Math.max(0, 60000 - elapsed);
-  setTimeout(() => sendInsight('60 seconds on site'), remaining);
+  const remaining = Math.max(0, 45000 - elapsed);
+  setTimeout(() => sendInsight('45 seconds on site'), remaining);
 
-  // Send when they leave or switch tab
+  // Send when tab hidden
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') sendInsight('Left site / switched tab');
   });
+
+  // Send on page unload / tab close
+  window.addEventListener('pagehide', () => sendInsight('Tab closed / navigated away'));
+  window.addEventListener('beforeunload', () => sendInsight('Browser closing'));
 })();
 
 // ============================================================
