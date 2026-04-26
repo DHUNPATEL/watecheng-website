@@ -137,16 +137,52 @@
 })();
 
 // ============================================================
-// CONTACT FORM SUBMIT (Web3Forms)
+// CONTACT FORM SUBMIT (Web3Forms via fetch)
 // ============================================================
 (function () {
   const form = document.querySelector('.contact-form');
   if (!form) return;
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
     const btn = form.querySelector('button[type="submit"]');
+    const originalText = btn.textContent;
+
     btn.textContent = 'Sending...';
     btn.disabled = true;
-    // Allow the form to submit naturally to Web3Forms
+
+    try {
+      const data = new FormData(form);
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: data
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        btn.textContent = '✓ Message Sent!';
+        btn.style.background = '#22c55e';
+        btn.style.borderColor = '#22c55e';
+        form.reset();
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.disabled = false;
+          btn.style.background = '';
+          btn.style.borderColor = '';
+        }, 4000);
+      } else {
+        throw new Error('Submission failed');
+      }
+    } catch (err) {
+      btn.textContent = '✗ Failed — Try Again';
+      btn.style.background = '#ef4444';
+      btn.style.borderColor = '#ef4444';
+      btn.disabled = false;
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '';
+        btn.style.borderColor = '';
+      }, 4000);
+    }
   });
 })();
