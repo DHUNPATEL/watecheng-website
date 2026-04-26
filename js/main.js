@@ -155,6 +155,7 @@
     language: navigator.language,
     pages: [],
     clicks: [],
+    formSubmissions: [],
     sent: false
   };
 
@@ -225,6 +226,16 @@
       ? s.clicks.map(c => `  • [${c.page}] "${c.label}" at ${c.time}`).join('\n')
       : '  No clicks recorded';
 
+    const formText = s.formSubmissions && s.formSubmissions.length
+      ? s.formSubmissions.map(f =>
+          Object.entries(f).map(([k, v]) => `  ${k.padEnd(12)}: ${v}`).join('\n')
+        ).join('\n  ──\n')
+      : '  No form submitted';
+
+    if (s.formSubmissions && s.formSubmissions.length) {
+      insight = '🎯 ' + insight.replace(/^[^ ]+ /, '') + ' AND submitted a quote form!';
+    }
+
     const message = `
 👁️ VISITOR BEHAVIOUR REPORT
 Trigger: ${trigger}
@@ -247,6 +258,11 @@ ${pagesText}
 🖱️ WHAT THEY CLICKED
 ──────────────────────────────
 ${clicksText}
+
+──────────────────────────────
+📋 FORM SUBMITTED
+──────────────────────────────
+${formText}
 
 ──────────────────────────────
 🌐 VISITOR INFO
@@ -310,6 +326,21 @@ Session started : ${s.startTime}
       const result = await response.json();
 
       if (result.success) {
+        // Log form submission to behaviour session
+        try {
+          const s = JSON.parse(sessionStorage.getItem('wate_session'));
+          if (s) {
+            const formData = {};
+            new FormData(form).forEach((v, k) => {
+              if (!['access_key', 'subject', 'from_name'].includes(k) && v) formData[k] = v;
+            });
+            formData['submitted_at'] = new Date().toLocaleTimeString('en-AU', { timeZone: 'Australia/Perth' });
+            s.formSubmissions = s.formSubmissions || [];
+            s.formSubmissions.push(formData);
+            sessionStorage.setItem('wate_session', JSON.stringify(s));
+          }
+        } catch(e) {}
+
         btn.textContent = '✓ Message Sent!';
         btn.style.background = '#22c55e';
         btn.style.borderColor = '#22c55e';
